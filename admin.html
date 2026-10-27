@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blush & Bloom | Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--rose:#d9577f;--rose-d:#b93d65;--blush:#fde8ee;--ink:#3b2a31;--muted:#8a747c;--line:#f1d5de;--ok:#2e9e6b;--err:#d64545;--warn:#d98a1c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Poppins',sans-serif;color:var(--ink);background:linear-gradient(160deg,#fff8f6,#fde8ee);min-height:100vh}
+.logo{font-family:'Playfair Display',serif;color:var(--rose-d)}
+input,select{font:inherit;color:var(--ink)}
+
+/* login */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.lbox{background:#fff;border:1px solid var(--line);border-radius:24px;padding:36px 30px;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 50px rgba(185,61,101,.15);animation:fadeUp .7s ease both}
+.lbox .logo{font-size:2rem}
+.lbox p{color:var(--muted);font-size:.88rem;margin:6px 0 22px}
+.lbox input{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;font-size:.95rem;transition:.2s}
+.lbox input:focus{outline:none;border-color:var(--rose);box-shadow:0 0 0 4px rgba(217,87,127,.15)}
+.lbox input.bad{animation:shake .35s;border-color:var(--err)}
+.btn{margin-top:14px;width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--rose),var(--rose-d));color:#fff;font:inherit;font-weight:600;cursor:pointer;transition:.2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(185,61,101,.35)}
+.btn:disabled{opacity:.7;cursor:wait}
+.msg{color:var(--err);font-size:.82rem;margin-top:10px;min-height:1.2em}
+
+/* dashboard */
+#dash{display:none;max-width:1200px;margin:0 auto;padding:24px 16px 50px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;animation:fadeDown .6s ease both}
+.top .logo{font-size:1.7rem}
+.top small{display:block;color:var(--muted);font-family:'Poppins';font-size:.8rem}
+.tbtns{display:flex;gap:10px}
+.tbtn{padding:9px 16px;border-radius:10px;border:1.5px solid var(--rose);background:#fff;color:var(--rose-d);font:inherit;font-size:.85rem;font-weight:500;cursor:pointer;transition:.2s}
+.tbtn:hover{background:var(--rose);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 18px;animation:pop .5s ease both}
+.stat b{display:block;font-size:1.7rem;font-weight:600}
+.stat span{font-size:.78rem;color:var(--muted);letter-spacing:.4px}
+.stat.p b{color:var(--warn)}.stat.c b{color:var(--ok)}.stat.x b{color:var(--err)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.tools input,.tools select{padding:10px 14px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-size:.88rem}
+.tools input{flex:1;min-width:200px}
+.tools input:focus,.tools select:focus{outline:none;border-color:var(--rose)}
+.wrap{background:#fff;border:1px solid var(--line);border-radius:18px;overflow-x:auto;box-shadow:0 12px 30px rgba(185,61,101,.08);animation:fadeUp .7s .1s ease both}
+table{width:100%;border-collapse:collapse;min-width:860px}
+th{background:var(--blush);color:var(--rose-d);text-align:left;font-size:.76rem;letter-spacing:.6px;text-transform:uppercase;padding:13px 14px;font-weight:600;white-space:nowrap}
+td{padding:13px 14px;font-size:.88rem;border-top:1px solid #f8e8ed;vertical-align:middle}
+tbody tr{animation:fadeUp .4s ease both;transition:background .2s}
+tbody tr:hover{background:#fff8fa}
+td.id{font-weight:600;color:var(--rose-d);white-space:nowrap}
+td small{color:var(--muted);display:block}
+.st{padding:7px 10px;border-radius:999px;border:1.5px solid;font-size:.8rem;font-weight:500;cursor:pointer;background:#fff;transition:.2s}
+.st.Pending{color:var(--warn);border-color:#f1d29c;background:#fff8ea}
+.st.Confirmed{color:var(--ok);border-color:#a8dcc3;background:#effaf4}
+.st.Cancelled{color:var(--err);border-color:#f2bcbc;background:#fdf0f0}
+.st.busy{opacity:.5;pointer-events:none}
+.empty{text-align:center;padding:40px;color:var(--muted)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,30px);background:var(--ink);color:#fff;padding:11px 20px;border-radius:12px;font-size:.88rem;opacity:0;pointer-events:none;transition:.35s;z-index:9}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:var(--err)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:none}}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <form class="lbox" id="loginForm">
+    <div class="logo">Blush & Bloom</div>
+    <p>Admin Dashboard · Enter password to continue</p>
+    <input type="password" id="pw" placeholder="Password" autocomplete="current-password">
+    <div class="msg" id="lmsg"></div>
+    <button class="btn" id="lbtn" type="submit">Login</button>
+  </form>
+</div>
+
+<div id="dash">
+  <div class="top">
+    <div class="logo">Blush & Bloom <small>Appointments Dashboard</small></div>
+    <div class="tbtns">
+      <button class="tbtn" id="refresh">Refresh</button>
+      <button class="tbtn" id="logout">Logout</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b id="sAll">0</b><span>TOTAL BOOKINGS</span></div>
+    <div class="stat p"><b id="sP">0</b><span>PENDING</span></div>
+    <div class="stat c"><b id="sC">0</b><span>CONFIRMED</span></div>
+    <div class="stat x"><b id="sX">0</b><span>CANCELLED</span></div>
+  </div>
+
+  <div class="tools">
+    <input id="q" placeholder="Search by name, ID, phone, service…">
+    <select id="fs"><option value="">All statuses</option><option>Pending</option><option>Confirmed</option><option>Cancelled</option></select>
+    <input id="fd" type="date" style="flex:0 0 auto;min-width:0" title="Filter by date">
+  </div>
+
+  <div class="wrap">
+    <table>
+      <thead><tr><th>Booking ID</th><th>Customer</th><th>Contact</th><th>Service</th><th>Date</th><th>Time Slot</th><th>Status</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <div class="empty" id="empty" style="display:none">No bookings found.</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbyislO4oNkx10em-eZgjVKlJ1BtnflIMzTZC3katBXxfZLOcz3Whx7OLGy3ORxCVauFlg/exec';
+const $ = id => document.getElementById(id);
+let PASS = sessionStorage.getItem('bb_admin') || '';
+let ALL = [];
+
+async function api(p){
+  const r = await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});
+  return r.json();
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(m,err){ const t=$('toast'); t.textContent=m; t.className='toast show'+(err?' err':''); clearTimeout(toast.t); toast.t=setTimeout(()=>t.className='toast',2600); }
+function prettyDate(iso){ const m=String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m) return iso; return new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
+
+async function load(){
+  const r = await api({action:'list',password:PASS});
+  if(!r.ok) throw new Error(r.error||'Failed to load');
+  ALL = r.bookings; render();
+}
+
+function render(){
+  const q=$('q').value.toLowerCase().trim(), fs=$('fs').value, fd=$('fd').value;
+  $('sAll').textContent=ALL.length;
+  $('sP').textContent=ALL.filter(b=>b.status==='Pending').length;
+  $('sC').textContent=ALL.filter(b=>b.status==='Confirmed').length;
+  $('sX').textContent=ALL.filter(b=>b.status==='Cancelled').length;
+
+  const rows = ALL.filter(b=>
+    (!fs||b.status===fs) && (!fd||b.date===fd) &&
+    (!q||[b.id,b.name,b.email,b.phone,b.service].join(' ').toLowerCase().includes(q))
+  );
+  $('empty').style.display = rows.length?'none':'block';
+  $('tb').innerHTML = rows.map((b,i)=>`
+    <tr style="animation-delay:${Math.min(i,15)*30}ms">
+      <td class="id">${esc(b.id)}</td>
+      <td>${esc(b.name)}</td>
+      <td>${esc(b.phone)}<small>${esc(b.email)}</small></td>
+      <td>${esc(b.service)}</td>
+      <td>${esc(prettyDate(b.date))}</td>
+      <td>${esc(b.slot)}</td>
+      <td><select class="st ${esc(b.status)}" data-id="${esc(b.id)}" data-old="${esc(b.status)}">
+        ${['Pending','Confirmed','Cancelled'].map(s=>`<option ${s===b.status?'selected':''}>${s}</option>`).join('')}
+      </select></td>
+    </tr>`).join('');
+}
+
+$('tb').addEventListener('change', async e=>{
+  const s=e.target; if(!s.classList.contains('st')) return;
+  const id=s.dataset.id, old=s.dataset.old, val=s.value;
+  s.classList.add('busy');
+  try{
+    const r = await api({action:'status',password:PASS,id:id,status:val});
+    if(!r.ok) throw new Error(r.error);
+    const b=ALL.find(x=>x.id===id); if(b) b.status=val;
+    toast(id+' marked as '+val);
+    render();
+  }catch(err){
+    s.value=old; s.classList.remove('busy');
+    toast(err.message||'Update failed',true);
+  }
+});
+
+['q','fs','fd'].forEach(id=>$(id).addEventListener('input',render));
+$('refresh').onclick=async()=>{ try{ await load(); toast('Updated'); }catch(e){ toast(e.message,true); } };
+$('logout').onclick=()=>{ sessionStorage.removeItem('bb_admin'); PASS=''; location.reload(); };
+
+function showDash(){ $('login').style.display='none'; $('dash').style.display='block'; }
+
+$('loginForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const pw=$('pw').value; if(!pw) return;
+  const b=$('lbtn'); b.disabled=true; b.textContent='Checking…'; $('lmsg').textContent='';
+  PASS=pw;
+  try{
+    await load();
+    sessionStorage.setItem('bb_admin',pw);
+    showDash();
+  }catch(err){
+    $('lmsg').textContent = /password/i.test(err.message) ? 'Incorrect password.' : 'Could not connect. Please try again.';
+    $('pw').classList.remove('bad'); void $('pw').offsetWidth; $('pw').classList.add('bad');
+  }finally{ b.disabled=false; b.textContent='Login'; }
+});
+
+/* auto-login if session exists */
+if(PASS){ load().then(showDash).catch(()=>{ sessionStorage.removeItem('bb_admin'); PASS=''; }); }
+</script>
+</body>
+</html>
